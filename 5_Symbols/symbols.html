@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Stealing: Extraction Attack Demo</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-color: #00ff9d; /* Cyber Green */
+            --secondary-accent: #58a6ff; /* Cyber Blue */
+            --card-bg: #161b22;
+            --border-color: #30363d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 650px; /* Increased slightly for code snippets */
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background-color: var(--border-color);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width linear;
+        }
+
+        /* Slide Content */
+        .slide {
+            display: none;
+            padding: 40px;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            color: var(--secondary-accent);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            padding-left: 20px;
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+        
+        li::before {
+            content: "➤"; 
+            color: var(--accent-color);
+            display: inline-block; 
+            width: 1.2em;
+            margin-left: -1.2em;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #ff7b72;
+            font-weight: bold;
+        }
+
+        .code-snippet {
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--secondary-accent);
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color);
+        }
+
+        button {
+            background-color: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .slide-counter {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="slide active">
+        <h1>🕵️ Model Stealing: The Concept</h1>
+        <p><strong>Core Concept:</strong> An adversary queries a model's API to build a replica.</p>
+        <p class="warning">⚠️ This is IP theft via information leakage, not hacking.</p>
+        <ul>
+            <li>Your model makes predictions continuously. 🔄</li>
+            <li>Each prediction reveals internal decision boundaries. 🧠</li>
+            <li>Attackers collect these to train a "Surrogate Model". 🤖</li>
+            <li><strong>Result:</strong> Stealing years of R&D for pennies. 💸</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>💰 The Economics of Theft</h2>
+        <p>Attackers steal because it is cheap. Compare the costs:</p>
+        <ul>
+            <li><strong>Small Models:</strong> ~1,000 queries (~$1.00) 🏷️</li>
+            <li><strong>Medium Models:</strong> ~10,000 queries (~$10.00) 🏷️</li>
+            <li><strong>Large Models:</strong> ~100,000+ queries (~$100.00) 🏷️</li>
+            <li><strong>Victim Dev Cost:</strong> Millions of Dollars 🏢</li>
+            <li><span class="highlight">ROI for Attacker: > 10,000x</span> 📈</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>📋 The Demo Scenario</h2>
+        <p>We are simulating a real-world attack in Python:</p>
+        <ul>
+            <li><strong>Victim:</strong> A company with a digit classifier (MNIST) API. 🔢</li>
+            <li><strong>Attacker:</strong> A competitor wanting to steal the model. 🦹</li>
+            <li><strong>The Weapon:</strong> Public API Access. 🔌</li>
+            <li><strong>Success Criteria:</strong> Surrogate achieves 95%+ fidelity. ✅</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>🏢 Step 1: The Victim Model</h2>
+        <p>First, the victim trains a proprietary model (Random Forest).</p>
+        <div class="code-snippet">
+# Victim Model Training
+victim_model = RandomForestClassifier()
+victim_model.fit(X_train, y_train)
+
+# Accuracy: 98.5%
+# Value: High R&D Investment 💎
+        </div>
+        <p>This model is deployed behind an API endpoint. ☁️</p>
+    </div>
+
+    <div class="slide">
+        <h2>🔌 Step 2: The API Interface</h2>
+        <p>The attacker interacts with a simulated API function.</p>
+        <div class="code-snippet">
+def query_victim_api(input_data):
+    # Returns probability scores
+    # e.g., [0.1, 0.8, 0.05, ...]
+    return victim_model.predict_proba(input_data)
+        </div>
+        <ul>
+            <li>Probabilities leak more info than simple labels. 💧</li>
+            <li>Attacker sends inputs, gets confidence scores. 📥</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>🎯 Step 3: Generating Queries</h2>
+        <p>The attacker needs data to query the API.</p>
+        <ul>
+            <li><strong>Strategy:</strong> Generate random synthetic data or use public datasets. 🎲</li>
+            <li><strong>Budget:</strong> 2,000 queries (~$2.00 cost). 💵</li>
+        </ul>
+        <div class="code-snippet">
+# Attacker generates random inputs
+X_attacker = np.random.uniform(low=0, high=16, size=(2000, 64))
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>🤖 Step 4: Training the Surrogate</h2>
+        <p>The attacker uses the <em>Victim's Predictions</em> as truth labels.</p>
+        <div class="code-snippet">
+# 1. Query Victim API
+y_stolen_labels = query_victim_api(X_attacker)
+
+# 2. Train Surrogate on (Attacker Data + Stolen Labels)
+surrogate = MLPClassifier()
+surrogate.fit(X_attacker, y_stolen_labels)
+        </div>
+        <p>The surrogate learns to mimic the victim's behavior. 👯</p>
+    </div>
+
+    <div class="slide">
+        <h2>📊 Extraction Results</h2>
+        <p>How well did the $2 attack work?</p>
+        <ul>
+            <li><strong>Victim Accuracy:</strong> 96.5% 🥇</li>
+            <li><strong>Surrogate Accuracy:</strong> 92.1% 🥈</li>
+            <li><strong>Fidelity (Agreement):</strong> 94.5% 🤝</li>
+        </ul>
+        <p class="highlight">🚨 RESULT: The IP has been effectively stolen.</p>
+        <p>The surrogate agrees with the victim 95% of the time! 🤯</p>
+    </div>
+
+    <div class="slide">
+        <h2>🔬 Query Budget Analysis</h2>
+        <p>Does spending more money improve the theft?</p>
+        <ul>
+            <li>📉 <strong>100 Queries:</strong> 65% Fidelity (Poor)</li>
+            <li>📈 <strong>500 Queries:</strong> 85% Fidelity (Good)</li>
+            <li>🚀 <strong>2,000 Queries:</strong> 95% Fidelity (Excellent)</li>
+        </ul>
+        <p class="warning">Insight: Larger query budgets = Higher fidelity extraction.</p>
+    </div>
+
+    <div class="slide">
+        <h2>🛡️ Defenses & Mitigations</h2>
+        <p>How do we stop this?</p>
+        <ul>
+            <li><strong>Rate Limiting:</strong> Slow down suspicious users. 🛑</li>
+            <li><strong>Prediction Perturbation:</strong> Add slight noise to scores. 🌫️</li>
+            <li><strong>Hard Labels Only:</strong> Don't return probabilities. 🚫</li>
+            <li><strong>Watermarking:</strong> Embed hidden triggers to prove theft. 💧</li>
+        </ul>
+        <p><em>Trade-off: Stronger defenses may hurt legitimate user experience.</em> ⚖️</p>
+    </div>
+
+    <div class="controls">
+        <div class="slide-counter" id="slideCounter">Slide 1 / 10</div>
+        <div>
+            <button onclick="togglePause()" id="pauseBtn">Pause ⏸️</button>
+            <button onclick="changeSlide(-1)">Prev ⬅️</button>
+            <button onclick="changeSlide(1)">Next ➡️</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const progressBar = document.getElementById('progressBar');
+    const slideCounter = document.getElementById('slideCounter');
+    const pauseBtn = document.getElementById('pauseBtn');
+    
+    // TIME: 16 Seconds
+    const slideDuration = 16000; 
+    
+    let timeLeft = 0;
+    let isPaused = false;
+    let timerInterval;
+    let progressInterval;
+
+    function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        
+        if (index >= slides.length) currentSlide = 0;
+        else if (index < 0) currentSlide = slides.length - 1;
+        else currentSlide = index;
+
+        slides[currentSlide].classList.add('active');
+        slideCounter.textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
+        
+        // Reset Timer
+        resetTimer();
+    }
+
+    function changeSlide(direction) {
+        showSlide(currentSlide + direction);
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        clearInterval(progressInterval);
+        timeLeft = 0;
+        progressBar.style.width = '0%';
+        
+        if (!isPaused) {
+            startTimer();
+        }
+    }
+
+    function startTimer() {
+        const step = 50; 
+        
+        timerInterval = setInterval(() => {
+            timeLeft += step;
+            
+            // Update progress bar
+            const percentage = (timeLeft / slideDuration) * 100;
+            progressBar.style.width = percentage + '%';
+
+            if (timeLeft >= slideDuration) {
+                changeSlide(1);
+            }
+        }, step);
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            clearInterval(timerInterval);
+            pauseBtn.textContent = "Resume ▶️";
+            progressBar.style.backgroundColor = "#ff7b72"; // Red when paused
+        } else {
+            startTimer();
+            pauseBtn.textContent = "Pause ⏸️";
+            progressBar.style.backgroundColor = "#00ff9d"; // Green when running
+        }
+    }
+
+    // Initialize
+    showSlide(0);
+
+</script>
+
+</body>
+</html>
